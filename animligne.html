@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrousel Rectangulaire Infini V3 (Flip Corrigé)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        :root { /* Styles inchangés */
+            --font-sans: 'Inter', sans-serif; --bg-color: #f0f2f5; --wheel-bg: #ffffff; --item-bg: #e4eaf1;
+            --text-color: #333; --shadow-color: rgba(0, 0, 0, 0.15); --highlight-shadow-color: rgba(0, 0, 0, 0.25);
+            --icon-color: #5a67d8; --item-width: 100px; --item-height: 120px; --item-spacing: 20px;
+            --wheel-offset-x: 0px;
+        }
+        body { /* Styles inchangés */
+            font-family: var(--font-sans); background-color: var(--bg-color); color: var(--text-color); margin: 0;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden;
+        }
+        .wheel-app-container { /* Styles inchangés */
+            text-align: center; padding: 20px; width: 90%; max-width: 1000px;
+        }
+        h1 { margin-bottom: 0.5em; font-weight: 600; }
+        p { margin-bottom: 1.5em; color: #555; font-size: 0.9em; }
+
+        .wheel-container { /* Ajout perspective */
+            width: 100%; position: relative; cursor: grab; overflow: hidden; background-color: var(--wheel-bg);
+            border-radius: 8px; box-shadow: 0 4px 15px var(--shadow-color); -webkit-tap-highlight-color: transparent;
+            outline: none; border: 2px solid transparent; transition: border-color 0.2s ease;
+            perspective: 1500px;
+        }
+        .wheel-container:focus-visible { border-color: var(--icon-color); }
+        .wheel-container:active { cursor: grabbing; }
+
+        .wheel { /* Styles inchangés */
+            position: absolute; top: 50%; left: 0; transform: translateY(-50%); display: flex;
+            align-items: center; height: 100%; will-change: transform;
+        }
+
+        .wheel-item { /* Ajout rotateY will-change et backface-visibility */
+            flex-shrink: 0; width: var(--item-width); height: var(--item-height); margin-right: var(--item-spacing);
+            border-radius: 8px; background-color: var(--item-bg); box-shadow: 0 2px 5px var(--shadow-color);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            transform-origin: center center;
+            will-change: transform, opacity, filter; /* RotateY est inclus dans transform */
+            transition: box-shadow 0.3s ease, border-color 0.3s ease, filter 0.3s ease;
+            user-select: none; -webkit-user-drag: none; border: 2px solid transparent;
+             backface-visibility: visible;
+        }
+        .wheel-item img, .wheel-item i, .wheel-item span:first-child { /* Styles inchangés */
+            max-width: 60%; max-height: 50%; display: block; margin-bottom: 5px; pointer-events: none;
+            color: var(--icon-color); font-size: calc(var(--item-width) * 0.35); transition: filter 0.1s linear; will-change: filter;
+        }
+        .wheel-item span:first-child:not(:last-child) { font-size: calc(var(--item-width) * 0.4); line-height: 1; }
+        .wheel-item span:last-child { /* Styles inchangés */
+            font-size: 12px; line-height: 1.3; color: var(--text-color); max-width: 90%; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+        }
+        .wheel-item.is-center { /* Styles inchangés */
+            box-shadow: 0 6px 15px var(--highlight-shadow-color); border-color: var(--icon-color); filter: brightness(1.05);
+        }
+        .controls { /* Styles inchangés */
+            margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .controls label { font-size: 0.9em; }
+        #item-count-label { font-weight: 600; min-width: 20px; }
+    </style>
+</head>
+<body>
+
+<!-- --- HTML (inchangé) --- -->
+<div class="wheel-app-container">
+    <h1>Carrousel Rectangulaire Infini V3</h1>
+    <p>Faites glisser horizontalement ou utilisez les flèches ← →</p>
+    <div id="wheel-container" class="wheel-container" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Carrousel interactif d'éléments">
+        <div id="wheel" class="wheel" role="list"></div>
+    </div>
+    <div class="controls">
+        <label for="item-count">Nombre d'items:</label>
+        <input type="range" id="item-count" name="item-count" min="5" max="15" value="10">
+        <span id="item-count-label">10</span>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const wheelContainer = document.getElementById('wheel-container');
+        const wheel = document.getElementById('wheel');
+        const itemCountSlider = document.getElementById('item-count');
+        const itemCountLabel = document.getElementById('item-count-label');
+
+        // --- Configuration ---
+        const config = {
+            itemsData: [], numItems: parseInt(itemCountSlider.value, 10), startIndex: 0,
+            dragSensitivity: 1.0, maxInertiaDuration: 1.5, snapToItem: true,
+            wheelXOffset: 0, itemWidth: 100, itemHeight: 120, itemSpacing: 20, // Spacing recalculé
+            isDragging: false, startX: 0, startXOffset: 0, velocity: 0,
+            lastMoveTime: 0, lastMoveX: 0, gsapTween: null,
+            loopThreshold: 999, maxItemScale: 2.8,
+            fadeOutTransitionDistance: 150, hiddenItemScale: 0.5, hiddenItemBlur: 4,
+            dragThreshold: 5, hasDragged: false, initialX: 0,
+            loopWidth: 0, xWrap: null,
+            maxFlipAngleY: 75,
+        };
+
+        // --- Données d'exemple ---
+         const sampleItems = [
+             { icon: '🏠', text: 'Accueil' }, { icon: '👤', text: 'Profil' }, { icon: '⚙️', text: 'Réglages' },
+             { icon: '✉️', text: 'Messages' }, { icon: '🔔', text: 'Notifs' }, { icon: '📊', text: 'Stats' },
+             { icon: '📷', text: 'Photos' }, { icon: '📍', text: 'Lieux' }, { icon: '🎵', text: 'Musique' },
+             { icon: '🎬', text: 'Vidéos' }, { icon: '☁️', text: 'Cloud' }, { icon: '❤️', text: 'Favoris' },
+             { icon: '⭐', text: 'Notes' }, { icon: '🔍', text: 'Recherche' }, { icon: '🗑️', text: 'Corbeille' }
+         ]; // Assurez-vous que ce tableau est bien rempli
+
+        // --- Fonctions principales ---
+
+        function initializeWheel() {
+            if (config.gsapTween) config.gsapTween.kill();
+            config.itemsData = sampleItems.slice(0, config.numItems);
+            calculateGeometry();
+            createItems();
+            config.loopWidth = config.numItems * (config.itemWidth + config.itemSpacing);
+            config.xWrap = gsap.utils.wrap(0, -config.loopWidth);
+            const containerCenter = wheelContainer.offsetWidth / 2;
+            const totalItemWidth = config.itemWidth + config.itemSpacing;
+            const initialTargetX = containerCenter - (config.startIndex * totalItemWidth + config.itemWidth / 2);
+            config.wheelXOffset = config.xWrap(initialTargetX);
+            gsap.set(wheel, { x: config.wheelXOffset });
+            updateAllItemStyles();
+        }
+
+        function calculateGeometry() { // Augmente l'espacement
+            const containerWidth = wheelContainer.offsetWidth;
+            config.itemWidth = Math.max(80, Math.min(containerWidth * 0.18, 120));
+            config.itemHeight = config.itemWidth * 1.2;
+            config.itemSpacing = config.itemWidth * 0.4; // Espacement augmenté
+
+            wheelContainer.style.setProperty('--item-width', `${config.itemWidth}px`);
+            wheelContainer.style.setProperty('--item-height', `${config.itemHeight}px`);
+            wheelContainer.style.setProperty('--item-spacing', `${config.itemSpacing}px`);
+
+            const containerHeight = config.itemHeight * config.maxItemScale * 1.1;
+            wheelContainer.style.height = `${containerHeight}px`;
+        }
+
+        function createItems() { // Ajoute rotateY au reset initial
+             wheel.innerHTML = '';
+             const displayNumItems = config.numItems * 2;
+             console.log(`Creating items. Original: ${config.numItems}, Displaying: ${displayNumItems} (for infinite loop)`);
+             for (let i = 0; i < displayNumItems; i++) {
+                 const originalIndex = i % config.numItems;
+                 const itemData = config.itemsData[originalIndex];
+                 const itemElement = document.createElement('div');
+                 itemElement.classList.add('wheel-item');
+                 itemElement.dataset.originalIndex = originalIndex;
+                 itemElement.dataset.displayIndex = i;
+                 itemElement.setAttribute('role', 'listitem');
+                 itemElement.setAttribute('aria-label', itemData.text);
+                 // Reset initial incluant rotateY
+                 gsap.set(itemElement, { scale: 1, opacity: 1, filter: 'blur(0px)', rotateY: 0 });
+                 if (itemData.icon) {
+                    if (itemData.icon.includes('/') || itemData.icon.includes('.')) { const img = document.createElement('img'); img.src = itemData.icon; img.alt = ""; itemElement.appendChild(img); }
+                    else if (itemData.icon.startsWith('fa')) { const icon = document.createElement('i'); icon.className = itemData.icon; icon.setAttribute('aria-hidden', 'true'); itemElement.appendChild(icon); }
+                    else { const spanIcon = document.createElement('span'); spanIcon.textContent = itemData.icon; spanIcon.setAttribute('aria-hidden', 'true'); itemElement.appendChild(spanIcon); }
+                 }
+                 const spanText = document.createElement('span'); spanText.textContent = itemData.text;
+                 spanText.setAttribute('aria-hidden', 'true'); itemElement.appendChild(spanText);
+                 wheel.appendChild(itemElement);
+             }
+        }
+
+        /**
+         * Met à jour le style d'un item (incluant RotateY).
+         */
+        function updateItemStyle(item, itemIndex, currentWheelXOffset) {
+            const containerWidth = wheelContainer.offsetWidth;
+            const viewportCenter = containerWidth / 2;
+            const itemCenterInWheel = item.offsetLeft + config.itemWidth / 2;
+            const itemCenterInViewport = itemCenterInWheel + currentWheelXOffset;
+            const distanceFromCenter = itemCenterInViewport - viewportCenter;
+            const absDistanceFromCenter = Math.abs(distanceFromCenter);
+            const maxVisibleDistance = viewportCenter * 0.8;
+
+            let scale = config.hiddenItemScale, opacity = 0, blur = config.hiddenItemBlur, zIndex = 5, isCenter = false;
+            let rotateY = 0; // Reset rotateY
+
+            // Zone principale visible
+            if (absDistanceFromCenter <= maxVisibleDistance) {
+                const factor = absDistanceFromCenter / maxVisibleDistance;
+                scale = gsap.utils.interpolate(config.maxItemScale, 0.7, factor);
+                opacity = gsap.utils.interpolate(1.0, 0.5, factor);
+                blur = gsap.utils.interpolate(0, 2, factor);
+                zIndex = Math.round(gsap.utils.interpolate(100, 10, factor));
+                rotateY = 0; // Pas de rotation Y ici
+            }
+            // Zone de transition pour disparition (AVEC ROTATION Y)
+            else if (absDistanceFromCenter <= maxVisibleDistance + config.fadeOutTransitionDistance) {
+                const fadeFactor = (absDistanceFromCenter - maxVisibleDistance) / config.fadeOutTransitionDistance;
+                scale = gsap.utils.interpolate(0.7, config.hiddenItemScale, fadeFactor);
+                opacity = gsap.utils.interpolate(0.5, 0, fadeFactor);
+                blur = gsap.utils.interpolate(2, config.hiddenItemBlur, fadeFactor);
+                zIndex = 5;
+                // Calcul rotation Y
+                const targetRotateY = gsap.utils.interpolate(0, config.maxFlipAngleY, fadeFactor);
+                rotateY = (distanceFromCenter > 0) ? targetRotateY : -targetRotateY;
+            }
+            // Au-delà: valeurs par défaut + rotation max
+            else {
+                 rotateY = (distanceFromCenter > 0) ? config.maxFlipAngleY : -config.maxFlipAngleY;
+                 // Assurez-vous que l'opacité est bien 0 et le scale minimal
+                 opacity = 0;
+                 scale = config.hiddenItemScale;
+                 blur = config.hiddenItemBlur;
+            }
+
+            const centerThreshold = (config.itemWidth + config.itemSpacing) / 2 * 0.8;
+            isCenter = absDistanceFromCenter < centerThreshold;
+
+            // Application des styles (Ajout de rotateY)
+            gsap.set(item, {
+                scale: scale,
+                opacity: opacity,
+                zIndex: zIndex,
+                rotateY: rotateY,
+                className: "wheel-item" + (isCenter ? " is-center" : "")
+            });
+            const visualElement = item.querySelector('img, i, span:first-child');
+            if (visualElement) {
+                gsap.set(visualElement, { filter: `blur(${blur}px)` });
+            }
+        }
+
+        function updateAllItemStyles() {
+            const currentXOffset = gsap.getProperty(wheel, "x");
+            wheel.childNodes.forEach((item, index) => {
+                 updateItemStyle(item, index, currentXOffset);
+            });
+        }
+
+        // --- Gestionnaires d'événements ---
+        function onPointerDown(event) {
+             if (event.button !== 0 && event.pointerType === 'mouse') return; config.isDragging = true; config.hasDragged = false;
+             config.initialX = event.pageX; config.startX = event.pageX; config.startXOffset = gsap.getProperty(wheel, "x");
+             config.velocity = 0; config.lastMoveTime = performance.now(); config.lastMoveX = event.pageX; if (config.gsapTween) config.gsapTween.kill();
+             wheelContainer.style.cursor = 'grabbing'; wheelContainer.setPointerCapture(event.pointerId); document.addEventListener('pointermove', onPointerMove, { passive: false });
+             document.addEventListener('pointerup', onPointerUp); document.addEventListener('pointercancel', onPointerUp);
+        }
+        function onPointerMove(event) {
+            if (!config.isDragging) return; event.preventDefault(); const currentX = event.pageX;
+             if (!config.hasDragged) { if (Math.abs(currentX - config.initialX) >= config.dragThreshold) { config.hasDragged = true;
+                 config.startX = currentX; config.startXOffset = gsap.getProperty(wheel, "x"); config.lastMoveX = currentX; config.lastMoveTime = performance.now(); } else { return; } }
+            const currentTime = performance.now(); const deltaTime = currentTime - config.lastMoveTime; const deltaX = currentX - config.lastMoveX;
+            if (deltaTime > 10) { const pixelsPerSecond = (deltaX / deltaTime) * 1000; config.velocity = pixelsPerSecond * config.dragSensitivity; config.lastMoveTime = currentTime; config.lastMoveX = currentX; }
+            const moveX = currentX - config.startX; let theoreticalX = config.startXOffset + moveX;
+            gsap.set(wheel, { x: config.xWrap(theoreticalX) }); updateAllItemStyles();
+        }
+        function onPointerUp(event) {
+            if (!config.isDragging) return; config.isDragging = false; config.hasDragged = false; wheelContainer.style.cursor = 'grab';
+            wheelContainer.releasePointerCapture(event.pointerId); document.removeEventListener('pointermove', onPointerMove);
+            document.removeEventListener('pointerup', onPointerUp); document.removeEventListener('pointercancel', onPointerUp);
+             if (Math.abs(config.velocity) < 10 && !config.hasDragged) { return; }
+            const currentXOffset = gsap.getProperty(wheel, "x"); let projectedXOffset = currentXOffset + config.velocity * 0.3;
+            let targetXOffset = projectedXOffset; let finalWrappedX = currentXOffset;
+            if (config.snapToItem) {
+                const containerCenter = wheelContainer.offsetWidth / 2; const totalItemWidth = config.itemWidth + config.itemSpacing;
+                const currentNearestIndex = findClosestIndex(currentXOffset, containerCenter, totalItemWidth); let targetIndex = currentNearestIndex;
+                 if (Math.abs(config.velocity) > 100) { targetIndex += (config.velocity < 0 ? 1 : -1); }
+                 targetIndex = targetIndex % config.numItems; if (targetIndex < 0) targetIndex += config.numItems;
+                const theoreticalTargetX = containerCenter - (targetIndex * totalItemWidth + config.itemWidth / 2);
+                finalWrappedX = config.xWrap(theoreticalTargetX); let diff = finalWrappedX - currentXOffset;
+                if (Math.abs(diff) > config.loopWidth / 2) { finalWrappedX += (diff > 0 ? -config.loopWidth : config.loopWidth); }
+                targetXOffset = finalWrappedX;
+            } else {
+                 targetXOffset = config.xWrap(projectedXOffset); let diff = targetXOffset - currentXOffset;
+                  if (Math.abs(diff) > config.loopWidth / 2) { targetXOffset += (diff > 0 ? -config.loopWidth : config.loopWidth); }
+            }
+            const distance = Math.abs(targetXOffset - currentXOffset); let inertiaDuration = gsap.utils.mapRange(0, config.loopWidth / 2, 0.3, config.maxInertiaDuration, distance);
+            inertiaDuration = gsap.utils.clamp(0.3, config.maxInertiaDuration, inertiaDuration); if (Math.abs(config.velocity) < 50 && config.snapToItem) { inertiaDuration = 0.4; }
+            config.gsapTween = gsap.to(wheel, { x: targetXOffset, duration: inertiaDuration, ease: "power2.out", onUpdate: updateAllItemStyles,
+                onComplete: () => { const finalX = config.xWrap(gsap.getProperty(wheel, "x")); gsap.set(wheel, { x: finalX }); config.wheelXOffset = finalX; updateAllItemStyles(); }
+            });
+        }
+        function findClosestIndex(currentX, center, itemTotalW) {
+             const theoreticalIndex = -(currentX - center + config.itemWidth / 2) / itemTotalW;
+             let closest = Math.round(theoreticalIndex) % config.numItems; if (closest < 0) closest += config.numItems; return closest;
+         }
+        function onKeyDown(event) {
+             if (gsap.isTweening(wheel)) return; let currentXOffset = gsap.getProperty(wheel, "x"); const containerCenter = wheelContainer.offsetWidth / 2;
+             const totalItemWidth = config.itemWidth + config.itemSpacing; let needsUpdate = false; let direction = 0;
+             if (event.key === 'ArrowLeft') { direction = 1; needsUpdate = true; event.preventDefault(); } else if (event.key === 'ArrowRight') { direction = -1; needsUpdate = true; event.preventDefault(); }
+             if (needsUpdate) {
+                 const currentIndex = findClosestIndex(currentXOffset, containerCenter, totalItemWidth); let nextIndex = (currentIndex + direction) % config.numItems;
+                 if (nextIndex < 0) nextIndex += config.numItems; const theoreticalTargetX = containerCenter - (nextIndex * totalItemWidth + config.itemWidth / 2);
+                 let targetXOffset = config.xWrap(theoreticalTargetX); let diff = targetXOffset - currentXOffset;
+                 if (Math.abs(diff) > config.loopWidth / 2) { targetXOffset += (diff > 0 ? -config.loopWidth : config.loopWidth); }
+                 config.gsapTween = gsap.to(wheel, { x: targetXOffset, duration: 0.4, ease: 'power2.out', onUpdate: updateAllItemStyles,
+                     onComplete: () => { const finalX = config.xWrap(gsap.getProperty(wheel, "x")); gsap.set(wheel, { x: finalX }); config.wheelXOffset = finalX; updateAllItemStyles(); }
+                 });
+             }
+        }
+        function onResize() {
+            clearTimeout(resizeTimeout); resizeTimeout = setTimeout(() => { console.log("Resizing carousel...");
+                const currentXOffset = config.wheelXOffset; const containerCenterOld = wheelContainer.offsetWidth / 2;
+                const totalItemWidthOld = config.itemWidth + config.itemSpacing; const oldCenterIndex = findClosestIndex(currentXOffset, containerCenterOld, totalItemWidthOld);
+                config.startIndex = oldCenterIndex; initializeWheel();
+            }, 250);
+        }
+        itemCountSlider.addEventListener('input', (e) => {
+             const newNumItems = parseInt(e.target.value, 10); if (newNumItems !== config.numItems) {
+                const currentXOffset = config.wheelXOffset; const containerCenter = wheelContainer.offsetWidth / 2;
+                const totalItemWidthOld = config.itemWidth + config.itemSpacing; const oldCenterIndex = findClosestIndex(currentXOffset, containerCenter, totalItemWidthOld);
+                config.numItems = newNumItems; itemCountLabel.textContent = config.numItems; config.startIndex = oldCenterIndex % config.numItems; initializeWheel(); }
+        });
+
+        // --- Initialisation ---
+        initializeWheel();
+
+        // Ajout écouteurs
+        wheelContainer.addEventListener('pointerdown', onPointerDown);
+        wheelContainer.addEventListener('keydown', onKeyDown);
+        window.addEventListener('resize', onResize);
+
+    }); // Fin DOMContentLoaded
+</script>
+
+</body>
+</html>

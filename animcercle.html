@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roue Large Rayon Fixe - 10 Items Dupliqués (32 Visuels Resserrés)</title> {/* Titre ajusté */}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        :root { /* Styles inchangés */
+            --font-sans: 'Inter', sans-serif; --bg-color: #f0f2f5; --wheel-bg: #ffffff; --item-bg: #e4eaf1;
+            --text-color: #333; --shadow-color: rgba(0, 0, 0, 0.15); --highlight-shadow-color: rgba(0, 0, 0, 0.25);
+            --icon-color: #5a67d8; --wheel-radius: 500px; --item-size: 60px; --wheel-rotation: 0deg;
+        }
+        body { /* Styles inchangés */
+            font-family: var(--font-sans); background-color: var(--bg-color); color: var(--text-color); margin: 0;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden;
+        }
+        .wheel-app-container { /* Styles inchangés */
+            text-align: center; padding: 20px; width: 90%; max-width: 1200px;
+        }
+        h1 { margin-bottom: 0.5em; font-weight: 600; }
+        p { margin-bottom: 1.5em; color: #555; font-size: 0.9em; }
+        .wheel-container { /* Ajout perspective */
+            width: 100%; position: relative; cursor: grab; overflow: hidden; background-color: var(--wheel-bg);
+            border-radius: 10px; box-shadow: 0 4px 15px var(--shadow-color); -webkit-tap-highlight-color: transparent;
+            outline: none; border: 2px solid transparent; transition: border-color 0.2s ease;
+            perspective: 1500px;
+            /* Hauteur gérée par JS */
+        }
+        .wheel-container:focus-visible { border-color: var(--icon-color); }
+        .wheel-container:active { cursor: grabbing; }
+        .wheel { /* Retour logique circulaire */
+            position: absolute; left: 50%; transform: translateX(-50%); width: calc(var(--wheel-radius) * 2);
+            height: calc(var(--wheel-radius) * 2); border-radius: 50%; transform-origin: center center;
+            will-change: transform; rotate: var(--wheel-rotation);
+            /* Bottom géré par JS */
+        }
+        .wheel-item { /* Retour logique circulaire */
+            position: absolute; top: 50%; left: 50%; width: var(--item-size); height: var(--item-size);
+            margin-left: calc(var(--item-size) / -2); margin-top: calc(var(--item-size) / -2);
+            border-radius: 8px; background-color: var(--item-bg); box-shadow: 0 2px 5px var(--shadow-color);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            transform-origin: center center; will-change: transform, opacity, filter;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease, filter 0.3s ease;
+            user-select: none; -webkit-user-drag: none; border: 2px solid transparent; backface-visibility: visible; /* Important pour rotateY */
+        }
+        .wheel-item img, .wheel-item i, .wheel-item span:first-child { /* Adapté item-size */
+            max-width: 60%; max-height: 50%; display: block; margin-bottom: 5px; pointer-events: none;
+            color: var(--icon-color); font-size: calc(var(--item-size) * 0.4); transition: filter 0.1s linear; will-change: filter;
+        }
+        /* Cas spécifique pour les emojis/texte comme icône principale */
+        .wheel-item span:first-child:not(:last-child) { font-size: calc(var(--item-size) * 0.45); line-height: 1; }
+        .wheel-item span:last-child { /* Adapté item-size */
+            font-size: calc(var(--item-size) * 0.15); line-height: 1.3; color: var(--text-color); max-width: 90%;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+        }
+        .wheel-item.is-top { /* Styles inchangés */
+            box-shadow: 0 6px 15px var(--highlight-shadow-color); border-color: var(--icon-color); filter: brightness(1.05);
+        }
+        /* Contrôles supprimés */
+    </style>
+</head>
+<body>
+
+<!-- --- HTML --- -->
+<div class="wheel-app-container">
+    <h1>Roue - 10 Items Uniques, 32 Visuels (Resserrés)</h1> {/* Titre ajusté */}
+    <p>Faites glisser horizontalement ou utilisez les flèches ← →</p>
+    <div id="wheel-container" class="wheel-container" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Carrousel interactif d'éléments">
+        <div id="wheel" class="wheel" role="list"></div>
+    </div>
+    <!-- Contrôles supprimés -->
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const wheelContainer = document.getElementById('wheel-container');
+        const wheel = document.getElementById('wheel');
+
+        // --- Configuration ---
+        const config = {
+            itemsData: [],
+            numItems: 10, // Nombre d'items *distincts* / uniques
+            displayNumItems: 32, // Nombre total d'éléments *visuels* sur la roue
+            startIndex: 0,
+            dragSensitivity: 0.6, maxInertiaDuration: 1.5, snapToAngle: true,
+            wheelRotation: 0, radius: 500, itemSize: 60, angleStep: 0, // angleStep sera basé sur numItems uniques
+            isDragging: false, startX: 0, startAngle: 0, velocity: 0,
+            lastMoveTime: 0, lastMoveX: 0, gsapTween: null,
+            maxItemScale: 4.8, fadeOutTransitionAngle: 20, hiddenItemScale: 0.5,
+            hiddenItemBlur: 4, dragThreshold: 5, hasDragged: false, initialX: 0,
+            rotationWrap: null, maxFlipAngleY: 75,
+            verticalBuffer: 50, // Buffer vertical pour le cadre
+        };
+
+        // --- Données d'exemple (10 items uniques) ---
+         const sampleItems = [
+             { icon: '🏠', text: 'Accueil' }, { icon: '👤', text: 'Profil' }, { icon: '⚙️', text: 'Réglages' },
+             { icon: '✉️', text: 'Messages' }, { icon: '🔔', text: 'Notifs' }, { icon: '📊', text: 'Stats' },
+             { icon: '📷', text: 'Photos' }, { icon: '📍', text: 'Lieux' }, { icon: '🎵', text: 'Musique' },
+             { icon: '🎬', text: 'Vidéos' },
+         ];
+
+        // --- Fonctions principales ---
+
+        function initializeWheel() {
+            if (config.gsapTween) config.gsapTween.kill();
+            config.itemsData = sampleItems.slice(0, config.numItems);
+            if (config.itemsData.length < config.numItems) {
+                console.warn(`Attention: Moins de ${config.numItems} items uniques disponibles. Ajustement à ${config.itemsData.length}.`);
+                config.numItems = config.itemsData.length;
+            }
+            if (config.numItems === 0) {
+                 console.error("Aucune donnée d'item unique à afficher !");
+                 wheel.innerHTML = '';
+                 return;
+            }
+            config.angleStep = 360 / config.numItems;
+            calculateGeometry();
+            createItems();
+            config.rotationWrap = gsap.utils.wrap(0, -360);
+            const initialTargetAngle = -(config.startIndex * config.angleStep);
+            config.wheelRotation = initialTargetAngle;
+            gsap.set(wheel, { rotation: config.wheelRotation });
+            updateAllItemStyles();
+        }
+
+        function calculateGeometry() {
+            const containerWidth = wheelContainer.offsetWidth;
+
+            // *** MODIFICATION ICI pour resserrer les éléments ***
+            // Un multiplicateur plus petit réduit le rayon, donc resserre les éléments.
+            // Précédemment : containerWidth * 2.0 (très plat)
+            config.radius = containerWidth * 0.7; // Ajustez 0.7 pour plus ou moins de resserrement
+
+            config.itemSize = Math.max(40, Math.min(containerWidth * 0.08, 80));
+
+            // Le reste du calcul de géométrie s'adapte au nouveau rayon
+            wheelContainer.style.setProperty('--wheel-radius', `${config.radius}px`);
+            wheelContainer.style.setProperty('--item-size', `${config.itemSize}px`);
+
+            const topClearance = (config.itemSize * config.maxItemScale) / 2;
+            const containerHeight = (config.itemSize * config.maxItemScale) + config.verticalBuffer;
+            wheelContainer.style.height = `${containerHeight}px`;
+
+            const wheelCenterYOffsetFromBottom = -(config.radius - containerHeight / 2);
+            const wheelBottomPosition = wheelCenterYOffsetFromBottom - config.radius;
+            wheel.style.bottom = `${wheelBottomPosition}px`;
+            // console.log(`Radius: ${config.radius.toFixed(1)}, ItemSize: ${config.itemSize.toFixed(1)}, ContainerHeight: ${containerHeight.toFixed(1)}, WheelBottom: ${wheelBottomPosition.toFixed(1)}`);
+        }
+
+        function createItems() {
+             wheel.innerHTML = '';
+             // console.log(`Création de ${config.displayNumItems} éléments visuels (basés sur ${config.numItems} items uniques)`);
+             if(config.numItems === 0) return;
+
+             for (let i = 0; i < config.displayNumItems; i++) {
+                 const originalIndex = i % config.numItems;
+                 const itemData = config.itemsData[originalIndex];
+                 if (!itemData) { console.error(`Donnée manquante pour l'index original ${originalIndex}`); continue; }
+
+                 const itemElement = document.createElement('div');
+                 itemElement.classList.add('wheel-item');
+                 itemElement.dataset.originalIndex = originalIndex;
+                 itemElement.dataset.displayIndex = i;
+                 itemElement.setAttribute('role', 'listitem');
+                 itemElement.setAttribute('aria-label', itemData.text);
+
+                 const baseAngle = originalIndex * config.angleStep;
+                 const angleOffset = Math.floor(i / config.numItems) * 360;
+                 const positioningAngle = baseAngle + angleOffset;
+                 const rad = (positioningAngle - 90) * (Math.PI / 180);
+                 const x = config.radius * Math.cos(rad);
+                 const y = config.radius * Math.sin(rad);
+
+                 gsap.set(itemElement, { x: x, y: y, rotation: 0, scale: 1, opacity: 1, filter: 'blur(0px)', rotateY: 0 });
+
+                 if (itemData.icon) {
+                     if (itemData.icon.includes('/') || itemData.icon.includes('.')) { const img = document.createElement('img'); img.src = itemData.icon; img.alt = ""; itemElement.appendChild(img); }
+                     else if (itemData.icon.startsWith('fa')) { const icon = document.createElement('i'); icon.className = itemData.icon; icon.setAttribute('aria-hidden', 'true'); itemElement.appendChild(icon); }
+                     else { const spanIcon = document.createElement('span'); spanIcon.textContent = itemData.icon; spanIcon.setAttribute('aria-hidden', 'true'); itemElement.appendChild(spanIcon); }
+                 }
+                 const spanText = document.createElement('span'); spanText.textContent = itemData.text;
+                 spanText.setAttribute('aria-hidden', 'true'); itemElement.appendChild(spanText);
+                 wheel.appendChild(itemElement);
+             }
+        }
+
+        function updateItemStyle(item, itemPositioningAngle, currentWheelRotation) {
+            let effectiveAngle = (itemPositioningAngle + currentWheelRotation) % 360;
+            if (effectiveAngle > 180) effectiveAngle -= 360; if (effectiveAngle < -180) effectiveAngle += 360;
+            const absEffectiveAngle = Math.abs(effectiveAngle); const maxVisibleAngle = 90;
+            let scale = config.hiddenItemScale, opacity = 0, blur = config.hiddenItemBlur, zIndex = 5, isTop = false; let rotateY = 0;
+
+            if (absEffectiveAngle <= maxVisibleAngle) {
+                const factor = absEffectiveAngle / maxVisibleAngle;
+                scale = gsap.utils.interpolate(config.maxItemScale, 0.7, factor); opacity = gsap.utils.interpolate(1.0, 0.5, factor);
+                blur = gsap.utils.interpolate(0, 2, factor); zIndex = Math.round(gsap.utils.interpolate(100, 10, factor)); rotateY = 0;
+            } else if (absEffectiveAngle <= maxVisibleAngle + config.fadeOutTransitionAngle) {
+                const fadeFactor = (absEffectiveAngle - maxVisibleAngle) / config.fadeOutTransitionAngle;
+                scale = gsap.utils.interpolate(0.7, config.hiddenItemScale, fadeFactor); opacity = gsap.utils.interpolate(0.5, 0, fadeFactor);
+                blur = gsap.utils.interpolate(2, config.hiddenItemBlur, fadeFactor); zIndex = 5;
+                const targetRotateY = gsap.utils.interpolate(0, config.maxFlipAngleY, fadeFactor); rotateY = (effectiveAngle > 0) ? targetRotateY : -targetRotateY;
+            } else {
+                rotateY = (effectiveAngle > 0) ? config.maxFlipAngleY : -config.maxFlipAngleY; opacity = 0; scale = config.hiddenItemScale; blur = config.hiddenItemBlur; zIndex = 5;
+            }
+            const topThreshold = (config.angleStep / 2) * 0.9; isTop = absEffectiveAngle < topThreshold;
+            const itemLocalRotation = itemPositioningAngle;
+            gsap.set(item, { scale: scale, opacity: opacity, zIndex: zIndex, rotation: itemLocalRotation, rotateY: rotateY, className: "wheel-item" + (isTop ? " is-top" : "") });
+            const visualElement = item.querySelector('img, i, span:first-child'); if (visualElement) { gsap.set(visualElement, { filter: `blur(${blur}px)` }); }
+        }
+
+        function updateAllItemStyles() {
+            const currentRotation = gsap.getProperty(wheel, "rotation");
+            wheel.childNodes.forEach((item) => {
+                 const originalIndex = parseInt(item.dataset.originalIndex, 10); const displayIndex = parseInt(item.dataset.displayIndex, 10);
+                 const baseAngle = originalIndex * config.angleStep;
+                 const angleOffset = Math.floor(displayIndex / config.numItems) * 360;
+                 const itemPositioningAngle = baseAngle + angleOffset;
+                 updateItemStyle(item, itemPositioningAngle, currentRotation);
+            });
+        }
+
+        // --- Gestionnaires d'événements (Pointer = Mouse + Touch) ---
+        function onPointerDown(event) {
+             if (event.pointerType === 'mouse' && event.button !== 0) return; config.isDragging = true; config.hasDragged = false;
+             config.initialX = event.pageX; config.startX = event.pageX; config.startAngle = gsap.getProperty(wheel, "rotation");
+             config.velocity = 0; config.lastMoveTime = performance.now(); config.lastMoveX = event.pageX; if (config.gsapTween) config.gsapTween.kill();
+             wheelContainer.style.cursor = 'grabbing'; wheelContainer.setPointerCapture(event.pointerId); document.addEventListener('pointermove', onPointerMove, { passive: false });
+             document.addEventListener('pointerup', onPointerUp); document.addEventListener('pointercancel', onPointerUp);
+        }
+        function onPointerMove(event) {
+            if (!config.isDragging) return; event.preventDefault(); const currentX = event.pageX; const currentTime = performance.now();
+             if (!config.hasDragged) { if (Math.abs(currentX - config.initialX) >= config.dragThreshold) { config.hasDragged = true; config.startX = currentX; config.startAngle = gsap.getProperty(wheel, "rotation"); config.lastMoveX = currentX; config.lastMoveTime = currentTime; } else { return; } }
+            const deltaTime = currentTime - config.lastMoveTime; const deltaX = currentX - config.lastMoveX;
+            if (deltaTime > 10) { const pixelsPerSecond = (deltaX / deltaTime) * 1000; config.velocity = pixelsPerSecond * config.dragSensitivity; config.lastMoveTime = currentTime; config.lastMoveX = currentX; }
+            const moveX = currentX - config.startX; const deltaAngle = moveX * config.dragSensitivity; let theoreticalAngle = config.startAngle + deltaAngle;
+            gsap.set(wheel, { rotation: config.rotationWrap(theoreticalAngle) }); updateAllItemStyles();
+        }
+        function onPointerUp(event) {
+            if (!config.isDragging) return; config.isDragging = false; wheelContainer.style.cursor = 'grab'; wheelContainer.releasePointerCapture(event.pointerId);
+            document.removeEventListener('pointermove', onPointerMove); document.removeEventListener('pointerup', onPointerUp); document.removeEventListener('pointercancel', onPointerUp);
+             if (!config.hasDragged && Math.abs(config.velocity) < 10) { /* snapToClosest(); // Optionnel au clic */ return; } config.hasDragged = false; // Reset hasDragged after use
+            const currentRotation = gsap.getProperty(wheel, "rotation"); let projectedRotation = currentRotation + config.velocity * 0.3;
+            let targetAngle = projectedRotation; let finalWrappedAngle = currentRotation;
+            if (config.snapToAngle) {
+                 const estimatedIndex = findClosestAngleIndex(projectedRotation, config.angleStep); const theoreticalTargetAngle = -(estimatedIndex * config.angleStep);
+                 finalWrappedAngle = config.rotationWrap(theoreticalTargetAngle); let diff = finalWrappedAngle - currentRotation;
+                 if (Math.abs(diff) > 180) { finalWrappedAngle += (diff > 0 ? -360 : 360); } targetAngle = finalWrappedAngle;
+            } else {
+                 targetAngle = config.rotationWrap(projectedRotation); let diff = targetAngle - currentRotation;
+                 if (Math.abs(diff) > 180) { targetAngle += (diff > 0 ? -360 : 360); }
+            }
+            const distance = Math.abs(targetAngle - currentRotation); let inertiaDuration = gsap.utils.mapRange(0, 180, 0.3, config.maxInertiaDuration, distance);
+            inertiaDuration = gsap.utils.clamp(0.3, config.maxInertiaDuration, inertiaDuration); if (Math.abs(config.velocity) < 50 && config.snapToAngle) { inertiaDuration = 0.4; }
+            config.gsapTween = gsap.to(wheel, { rotation: targetAngle, duration: inertiaDuration, ease: "power2.out", onUpdate: updateAllItemStyles,
+                onComplete: () => { const finalAngle = config.rotationWrap(gsap.getProperty(wheel, "rotation")); gsap.set(wheel, { rotation: finalAngle }); config.wheelRotation = finalAngle; updateAllItemStyles(); }
+            });
+        }
+
+        function findClosestAngleIndex(currentRot, angleStep) {
+             if (angleStep === 0) return 0; const theoreticalIndex = -currentRot / angleStep;
+             let closest = Math.round(theoreticalIndex) % config.numItems;
+             if (closest < 0) closest += config.numItems; return closest;
+         }
+
+        /* // Fonction snapToClosest (non utilisée par défaut mais peut être utile)
+        function snapToClosest() {
+            if (gsap.isTweening(wheel) || config.angleStep === 0) return;
+            const currentRotation = gsap.getProperty(wheel, "rotation"); const closestIndex = findClosestAngleIndex(currentRotation, config.angleStep);
+            const theoreticalTargetAngle = -(closestIndex * config.angleStep); let targetAngle = config.rotationWrap(theoreticalTargetAngle);
+            let diff = targetAngle - currentRotation; if (Math.abs(diff) > 180) { targetAngle += (diff > 0 ? -360 : 360); }
+            if (Math.abs(targetAngle - currentRotation) < 0.1) return;
+             config.gsapTween = gsap.to(wheel, { rotation: targetAngle, duration: 0.4, ease: 'power2.out', onUpdate: updateAllItemStyles,
+                 onComplete: () => { const finalAngle = config.rotationWrap(gsap.getProperty(wheel, "rotation")); gsap.set(wheel, { rotation: finalAngle }); config.wheelRotation = finalAngle; updateAllItemStyles(); }
+             });
+        }
+        */
+
+        // --- Gestionnaire d'événements Clavier ---
+        function onKeyDown(event) {
+             if (gsap.isTweening(wheel) || config.angleStep === 0) return;
+             let currentRotation = gsap.getProperty(wheel, "rotation"); let needsUpdate = false; let direction = 0;
+             if (event.key === 'ArrowLeft') { direction = -1; needsUpdate = true; event.preventDefault(); } else if (event.key === 'ArrowRight') { direction = 1; needsUpdate = true; event.preventDefault(); }
+             if (needsUpdate) {
+                 const currentIndex = findClosestAngleIndex(currentRotation, config.angleStep); let nextIndex = (currentIndex + direction) % config.numItems; if (nextIndex < 0) nextIndex += config.numItems;
+                 const theoreticalTargetAngle = -(nextIndex * config.angleStep); let targetAngle = config.rotationWrap(theoreticalTargetAngle); let diff = targetAngle - currentRotation; if (Math.abs(diff) > 180) { targetAngle += (diff > 0 ? -360 : 360); }
+                 config.gsapTween = gsap.to(wheel, { rotation: targetAngle, duration: 0.4, ease: 'power2.out', onUpdate: updateAllItemStyles,
+                     onComplete: () => { const finalAngle = config.rotationWrap(gsap.getProperty(wheel, "rotation")); gsap.set(wheel, { rotation: finalAngle }); config.wheelRotation = finalAngle; updateAllItemStyles(); }
+                 });
+             }
+        }
+
+        // --- Gestionnaire d'événements Redimensionnement ---
+        let resizeTimeout;
+        function onResize() {
+            clearTimeout(resizeTimeout); resizeTimeout = setTimeout(() => {
+                // console.log("Resizing wheel...");
+                const currentRotation = config.wheelRotation;
+                if(config.numItems === 0) { initializeWheel(); return; }
+                if(config.angleStep === 0) config.angleStep = 360 / config.numItems; // Recalcul si besoin
+                const centerIndex = findClosestAngleIndex(currentRotation, config.angleStep);
+                config.startIndex = centerIndex;
+                initializeWheel();
+            }, 250);
+        }
+
+        // --- Initialisation ---
+        initializeWheel();
+
+        // Ajout des écouteurs principaux
+        wheelContainer.addEventListener('pointerdown', onPointerDown);
+        wheelContainer.addEventListener('keydown', onKeyDown);
+        window.addEventListener('resize', onResize);
+
+    }); // Fin DOMContentLoaded
+</script>
+
+</body>
+</html>
