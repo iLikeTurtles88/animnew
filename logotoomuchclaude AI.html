@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Déclaration du viewport pour un affichage responsive -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logo SVG Complexe - Version Commentée</title>
+    <style>
+      /* ---------------------------------------------------------------
+       STYLE DU CORPS DE PAGE
+       Ajustez ici les propriétés du body pour modifier l'affichage général
+    ---------------------------------------------------------------- */
+      body {
+        margin: 0; /* Supprime les marges par défaut */
+        padding: 0; /* Supprime les espacements internes */
+        display: flex; /* Utilisation de Flexbox pour centrer le contenu */
+        justify-content: center; /* Centre horizontalement */
+        align-items: center; /* Centre verticalement */
+        min-height: 100vh; /* Hauteur minimale égale à 100% de la hauteur de la fenêtre */
+        background: #0f0f1e; /* Couleur de fond sombre (modifiable) */
+        overflow: hidden; /* Masque tout débordement */
+      }
+
+      /* ---------------------------------------------------------------
+       CONTAINER PRINCIPAL POUR LE LOGO
+       Ajustez la taille (width, height) et la transition de transformation
+    ---------------------------------------------------------------- */
+      .logo-container {
+        width: 600px; /* Largeur du conteneur (modifiable) */
+        height: 600px; /* Hauteur du conteneur (modifiable) */
+        position: relative;
+        transition: transform 0.3s ease-out; /* Transition pour l'effet interactif */
+      }
+
+      /* ---------------------------------------------------------------
+       STYLE DE L'ÉLÉMENT SVG
+       Le SVG occupe toute la taille du conteneur et bénéficie d'un drop-shadow
+    ---------------------------------------------------------------- */
+      svg {
+        width: 100%; /* Utilise toute la largeur du conteneur */
+        height: 100%; /* Utilise toute la hauteur du conteneur */
+        filter: drop-shadow(0 0 10px rgba(0, 183, 255, 0.4));
+        /* Paramètres du drop-shadow :
+         - décalage X : 0
+         - décalage Y : 0
+         - flou : 10px
+         - couleur : rgba(0, 183, 255, 0.4) (modifiable)
+      */
+      }
+
+      /* ---------------------------------------------------------------
+       ANIMATION "PULSE" (effet de battement)
+       Ajustez la durée (4s) ou les transformations pour modifier l'effet
+    ---------------------------------------------------------------- */
+      .pulse {
+        animation: pulse 4s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1); /* Échelle normale */
+          filter: hue-rotate(0deg); /* Aucune rotation de teinte */
+        }
+        50% {
+          transform: scale(
+            1.05
+          ); /* Légère augmentation de la taille (modifiable) */
+          filter: hue-rotate(30deg); /* Rotation de teinte à 30° (modifiable) */
+        }
+        100% {
+          transform: scale(1); /* Retour à l'échelle normale */
+          filter: hue-rotate(0deg); /* Retour à la teinte originale */
+        }
+      }
+
+      /* ---------------------------------------------------------------
+       ANIMATION "SPIN" (rotation continue)
+       Ajustez la durée (20s ici) pour changer la vitesse de rotation
+    ---------------------------------------------------------------- */
+      .spin {
+        animation: spin 2s linear infinite;
+        transform-origin: center; /* Centre de rotation */
+        transform-box: fill-box; /* Définit la boîte de transformation */
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        } /* Pas de rotation au début */
+        100% {
+          transform: rotate(360deg);
+        } /* Rotation complète sur 360° */
+      }
+
+      /* ---------------------------------------------------------------
+       ANIMATION "SPARKLE" (effet de scintillement)
+       Vous pouvez ajuster la durée et les valeurs d'opacité pour personnaliser
+    ---------------------------------------------------------------- */
+      .sparkle {
+        animation: sparkle 3s infinite;
+      }
+
+      @keyframes sparkle {
+        0% {
+          opacity: 0.2;
+        } /* Opacité minimale */
+        50% {
+          opacity: 1;
+        } /* Opacité maximale */
+        100% {
+          opacity: 0.2;
+        } /* Retour à l'opacité minimale */
+      }
+
+      /* ---------------------------------------------------------------
+       ANIMATION "FLOAT" (effet de flottement vertical)
+       Modifiez la durée (6s) ou la translation verticale pour ajuster l'effet
+    ---------------------------------------------------------------- */
+      .float {
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-15px);
+        } /* Décalage vertical de -15px (modifiable) */
+        100% {
+          transform: translateY(0px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- CONTAINER PRINCIPAL DU LOGO -->
+    <div class="logo-container">
+      <!-- SVG principal avec vue de 800x800 et animation de pulse -->
+      <svg
+        viewBox="0 0 800 800"
+        xmlns="http://www.w3.org/2000/svg"
+        class="pulse"
+      >
+        <!-- ===================================================================
+           DÉFINITIONS DES GRADIENTS, FILTRES ET MOTIFS
+           (Paramètres ajustables pour changer les couleurs, intensités, etc.)
+      =================================================================== -->
+        <defs>
+          <!-- Dégradé radial pour le fond principal -->
+          <radialGradient
+            id="bg-gradient"
+            cx="50%"
+            cy="50%"
+            r="50%"
+            fx="50%"
+            fy="50%"
+          >
+            <stop offset="0%" stop-color="#1a1a3a" />
+            <!-- Couleur au centre -->
+            <stop offset="70%" stop-color="#0f0f2a" />
+            <!-- Couleur intermédiaire -->
+            <stop offset="100%" stop-color="#07071a" />
+            <!-- Couleur en périphérie -->
+          </radialGradient>
+
+          <!-- Dégradé linéaire pour les éléments bleus -->
+          <linearGradient
+            id="blue-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stop-color="#00b7ff" />
+            <stop offset="50%" stop-color="#0073ff" />
+            <stop offset="100%" stop-color="#0044ff" />
+          </linearGradient>
+
+          <!-- Dégradé linéaire pour les éléments violets -->
+          <linearGradient
+            id="purple-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stop-color="#b700ff" />
+            <stop offset="50%" stop-color="#7300ff" />
+            <stop offset="100%" stop-color="#4400ff" />
+          </linearGradient>
+
+          <!-- Dégradé linéaire pour le cercle extérieur lumineux -->
+          <linearGradient
+            id="outer-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stop-color="#00b7ff" stop-opacity="0.1" />
+            <stop offset="50%" stop-color="#0073ff" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="#0044ff" stop-opacity="0.1" />
+          </linearGradient>
+
+          <!-- Filtre de flou pour créer un effet de glow -->
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <!-- stdDeviation définit l'intensité du flou -->
+            <feGaussianBlur stdDeviation="10" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+
+          <!-- Motif en grille pour une texture de fond -->
+          <pattern
+            id="grid"
+            width="20"
+            height="20"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 20 0 L 0 0 0 20"
+              fill="none"
+              stroke="#ffffff"
+              stroke-width="0.5"
+              stroke-opacity="0.1"
+            />
+          </pattern>
+
+          <!-- Motif en cercles pour une texture alternative -->
+          <pattern
+            id="circles"
+            width="30"
+            height="30"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="15" cy="15" r="2" fill="#ffffff" fill-opacity="0.1" />
+          </pattern>
+
+          <!-- Filtre pour les éléments brillants avec flou (shine) -->
+          <filter id="shine" x="-50%" y="-50%" width="200%" height="200%">
+            <!-- stdDeviation ici ajuste la diffusion du flou -->
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+
+          <!-- Clip-path pour limiter l'affichage à un cercle -->
+          <clipPath id="circle-clip">
+            <circle cx="400" cy="400" r="350" />
+          </clipPath>
+
+          <!-- Dégradé pour le texte -->
+          <linearGradient
+            id="text-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="100%" stop-color="#b0b0ff" />
+          </linearGradient>
+        </defs>
+
+        <!-- ===================================================================
+           FOND PRINCIPAL
+      =================================================================== -->
+        <!-- Cercle de fond utilisant le dégradé radial -->
+        <circle cx="400" cy="400" r="380" fill="url(#bg-gradient)" />
+        <!-- Superposition du motif en grille pour la texture -->
+        <circle cx="400" cy="400" r="380" fill="url(#grid)" />
+
+        <!-- ===================================================================
+           CERCLE EXTÉRIEUR LUMINEUX
+           (stroke-width et filter peuvent être ajustés pour modifier l'effet)
+      =================================================================== -->
+        <circle
+          cx="400"
+          cy="400"
+          r="370"
+          fill="none"
+          stroke="url(#outer-gradient)"
+          stroke-width="20"
+          filter="url(#glow)"
+        />
+
+        <!-- ===================================================================
+           ANNEAUX ET LIGNES DE CONNEXION (groupe avec classe "spin" pour la rotation)
+      =================================================================== -->
+        <g class="spin">
+          <!-- Anneaux circulaires (ajustez les rayons et stroke-width pour varier l'effet) -->
+          <circle
+            cx="400"
+            cy="400"
+            r="340"
+            fill="none"
+            stroke="#1a1a4a"
+            stroke-width="1"
+          />
+          <circle
+            cx="400"
+            cy="400"
+            r="320"
+            fill="none"
+            stroke="#1a1a4a"
+            stroke-width="1"
+          />
+          <circle
+            cx="400"
+            cy="400"
+            r="300"
+            fill="none"
+            stroke="#1a1a4a"
+            stroke-width="1"
+          />
+          <circle
+            cx="400"
+            cy="400"
+            r="280"
+            fill="none"
+            stroke="#1a1a4a"
+            stroke-width="1"
+          />
+          <circle
+            cx="400"
+            cy="400"
+            r="260"
+            fill="none"
+            stroke="#1a1a4a"
+            stroke-width="1"
+          />
+
+          <!-- Lignes de connexion rayonnantes
+             Les coordonnées (x1, y1, x2, y2) peuvent être modifiées pour varier la direction et la longueur
+        -->
+          <g stroke="#1a1a6a" stroke-width="1" opacity="0.3">
+            <line x1="400" y1="60" x2="400" y2="740" />
+            <line x1="167" y1="167" x2="633" y2="633" />
+            <line x1="167" y1="633" x2="633" y2="167" />
+            <line x1="400" y1="100" x2="700" y2="400" />
+            <line x1="700" y1="400" x2="400" y2="700" />
+            <line x1="400" y1="700" x2="100" y2="400" />
+            <line x1="100" y1="400" x2="400" y2="100" />
+          </g>
+        </g>
+
+        <!-- ===================================================================
+           STRUCTURE GÉOMÉTRIQUE PRINCIPALE
+      =================================================================== -->
+        <g class="float">
+          <!-- Hexagone central -->
+          <path
+            d="M400,225 L312.5,275 L312.5,375 L400,425 L487.5,375 L487.5,275 Z"
+            fill="#0a0a2a"
+            stroke="url(#blue-gradient)"
+            stroke-width="3"
+          />
+          <!-- Triangle supérieur -->
+          <path
+            d="M400,225 L312.5,275 L487.5,275 Z"
+            fill="#0c0c35"
+            stroke="url(#blue-gradient)"
+            stroke-width="2"
+          />
+          <!-- Triangle inférieur -->
+          <path
+            d="M400,425 L312.5,375 L487.5,375 Z"
+            fill="#0c0c35"
+            stroke="url(#blue-gradient)"
+            stroke-width="2"
+          />
+          <!-- Cercle central -->
+          <circle
+            cx="400"
+            cy="325"
+            r="60"
+            fill="#0e0e3a"
+            stroke="url(#purple-gradient)"
+            stroke-width="2"
+          />
+          <!-- Hexagone externe -->
+          <path
+            d="M400,175 L262.5,250 L262.5,400 L400,475 L537.5,400 L537.5,250 Z"
+            fill="none"
+            stroke="url(#blue-gradient)"
+            stroke-width="1"
+            stroke-opacity="0.6"
+          />
+          <!-- Lignes intérieures -->
+          <line
+            x1="400"
+            y1="225"
+            x2="400"
+            y2="425"
+            stroke="url(#blue-gradient)"
+            stroke-width="1.5"
+          />
+          <line
+            x1="312.5"
+            y1="275"
+            x2="487.5"
+            y2="375"
+            stroke="url(#blue-gradient)"
+            stroke-width="1.5"
+          />
+          <line
+            x1="312.5"
+            y1="375"
+            x2="487.5"
+            y2="275"
+            stroke="url(#blue-gradient)"
+            stroke-width="1.5"
+          />
+          <!-- Noeuds de connexion (points scintillants) -->
+          <circle
+            cx="400"
+            cy="225"
+            r="8"
+            fill="url(#blue-gradient)"
+            class="sparkle"
+          />
+          <circle
+            cx="312.5"
+            cy="275"
+            r="8"
+            fill="url(#blue-gradient)"
+            class="sparkle"
+          />
+          <circle
+            cx="312.5"
+            cy="375"
+            r="8"
+            fill="url(#blue-gradient)"
+            class="sparkle"
+          />
+          <circle
+            cx="400"
+            cy="425"
+            r="8"
+            fill="url(#blue-gradient)"
+            class="sparkle"
+          />
+          <circle
+            cx="487.5"
+            cy="375"
+            r="8"
+            fill="url(#blue-gradient)"
+            class="sparkle"
+          />
+          <circle
+            cx="487.5"
+            cy="275"
+            r="8"
+            fill="url(#blue-gradient)"
+            class="sparkle"
+          />
+          <!-- Cercle central lumineux -->
+          <circle
+            cx="400"
+            cy="325"
+            r="30"
+            fill="url(#purple-gradient)"
+            filter="url(#shine)"
+            class="sparkle"
+          />
+          <!-- Petits cercles décoratifs -->
+          <g>
+            <circle
+              cx="400"
+              cy="265"
+              r="5"
+              fill="#ffffff"
+              opacity="0.8"
+              class="sparkle"
+            />
+            <circle
+              cx="400"
+              cy="385"
+              r="5"
+              fill="#ffffff"
+              opacity="0.8"
+              class="sparkle"
+            />
+            <circle
+              cx="340"
+              cy="325"
+              r="5"
+              fill="#ffffff"
+              opacity="0.8"
+              class="sparkle"
+            />
+            <circle
+              cx="460"
+              cy="325"
+              r="5"
+              fill="#ffffff"
+              opacity="0.8"
+              class="sparkle"
+            />
+          </g>
+        </g>
+
+        <!-- ===================================================================
+           PARTICULES DÉCORATIVES AUTOUR DU LOGO
+           (Les positions, tailles et opacités sont ajustables pour chaque particule)
+      =================================================================== -->
+        <g class="particles">
+          <!-- Petits points scintillants -->
+          <g class="sparkle">
+            <circle cx="250" cy="200" r="2" fill="#00b7ff" opacity="0.7" />
+            <circle cx="550" cy="200" r="2" fill="#00b7ff" opacity="0.7" />
+            <circle cx="250" cy="450" r="2" fill="#00b7ff" opacity="0.7" />
+            <circle cx="550" cy="450" r="2" fill="#00b7ff" opacity="0.7" />
+            <circle cx="300" cy="150" r="1.5" fill="#00b7ff" opacity="0.5" />
+            <circle cx="500" cy="150" r="1.5" fill="#00b7ff" opacity="0.5" />
+            <circle cx="300" cy="500" r="1.5" fill="#00b7ff" opacity="0.5" />
+            <circle cx="500" cy="500" r="1.5" fill="#00b7ff" opacity="0.5" />
+            <circle cx="200" cy="300" r="1.5" fill="#00b7ff" opacity="0.5" />
+            <circle cx="600" cy="300" r="1.5" fill="#00b7ff" opacity="0.5" />
+            <circle cx="220" cy="220" r="1" fill="#00b7ff" opacity="0.3" />
+            <circle cx="580" cy="220" r="1" fill="#00b7ff" opacity="0.3" />
+            <circle cx="220" cy="420" r="1" fill="#00b7ff" opacity="0.3" />
+            <circle cx="580" cy="420" r="1" fill="#00b7ff" opacity="0.3" />
+          </g>
+          <!-- Particules plus grandes et lumineuses -->
+          <g class="sparkle">
+            <circle cx="350" cy="180" r="3" fill="#ffffff" opacity="0.9" />
+            <circle cx="450" cy="180" r="3" fill="#ffffff" opacity="0.9" />
+            <circle cx="350" cy="470" r="3" fill="#ffffff" opacity="0.9" />
+            <circle cx="450" cy="470" r="3" fill="#ffffff" opacity="0.9" />
+            <circle cx="180" cy="350" r="3" fill="#ffffff" opacity="0.9" />
+            <circle cx="620" cy="350" r="3" fill="#ffffff" opacity="0.9" />
+          </g>
+        </g>
+
+        <!-- ===================================================================
+           ANNEAUX D'ÉTOILES EXTERNES (rotation lente)
+           Ajustez l'attribut style (animation-duration) pour modifier la vitesse
+      =================================================================== -->
+        <g class="spin" style="animation-duration: 40s">
+          <path
+            d="M400,100 L405,115 L420,115 L410,125 L415,140 L400,130 L385,140 L390,125 L380,115 L395,115 Z"
+            fill="#00b7ff"
+            opacity="0.5"
+          />
+          <path
+            d="M400,700 L405,685 L420,685 L410,675 L415,660 L400,670 L385,660 L390,675 L380,685 L395,685 Z"
+            fill="#00b7ff"
+            opacity="0.5"
+          />
+          <path
+            d="M100,400 L115,405 L115,420 L125,410 L140,415 L130,400 L140,385 L125,390 L115,380 L115,395 Z"
+            fill="#00b7ff"
+            opacity="0.5"
+          />
+          <path
+            d="M700,400 L685,405 L685,420 L675,410 L660,415 L670,400 L660,385 L675,390 L685,380 L685,395 Z"
+            fill="#00b7ff"
+            opacity="0.5"
+          />
+          <path
+            d="M200,200 L210,210 L225,205 L220,220 L230,230 L215,225 L205,240 L200,225 L185,220 L200,215 Z"
+            fill="#00b7ff"
+            opacity="0.3"
+          />
+          <path
+            d="M600,200 L590,210 L575,205 L580,220 L570,230 L585,225 L595,240 L600,225 L615,220 L600,215 Z"
+            fill="#00b7ff"
+            opacity="0.3"
+          />
+          <path
+            d="M200,600 L210,590 L225,595 L220,580 L230,570 L215,575 L205,560 L200,575 L185,580 L200,585 Z"
+            fill="#00b7ff"
+            opacity="0.3"
+          />
+          <path
+            d="M600,600 L590,590 L575,595 L580,580 L570,570 L585,575 L595,560 L600,575 L615,580 L600,585 Z"
+            fill="#00b7ff"
+            opacity="0.3"
+          />
+        </g>
+
+        <!-- ===================================================================
+           FORMES TRIANGULAIRES EMBOÎTÉES (avec effet "float")
+           Ajustez les coordonnées pour modifier la forme des triangles
+      =================================================================== -->
+        <g class="float" style="animation-duration: 8s">
+          <path
+            d="M400,250 L360,320 L440,320 Z"
+            fill="none"
+            stroke="url(#purple-gradient)"
+            stroke-width="1"
+          />
+          <path
+            d="M400,270 L370,325 L430,325 Z"
+            fill="none"
+            stroke="url(#purple-gradient)"
+            stroke-width="1"
+          />
+          <path
+            d="M400,290 L380,330 L420,330 Z"
+            fill="none"
+            stroke="url(#purple-gradient)"
+            stroke-width="1"
+          />
+          <path
+            d="M400,400 L360,330 L440,330 Z"
+            fill="none"
+            stroke="url(#purple-gradient)"
+            stroke-width="1"
+          />
+          <path
+            d="M400,380 L370,325 L430,325 Z"
+            fill="none"
+            stroke="url(#purple-gradient)"
+            stroke-width="1"
+          />
+          <path
+            d="M400,360 L380,320 L420,320 Z"
+            fill="none"
+            stroke="url(#purple-gradient)"
+            stroke-width="1"
+          />
+        </g>
+
+        <!-- ===================================================================
+           CERCEAUX CONCENTRIQUES PULSANTS (effet "sparkle")
+           Ajustez les rayons et opacités pour varier l'intensité
+      =================================================================== -->
+        <g class="sparkle">
+          <circle
+            cx="400"
+            cy="325"
+            r="15"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+            stroke-opacity="0.7"
+          />
+          <circle
+            cx="400"
+            cy="325"
+            r="22"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+            stroke-opacity="0.6"
+          />
+          <circle
+            cx="400"
+            cy="325"
+            r="29"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+            stroke-opacity="0.5"
+          />
+          <circle
+            cx="400"
+            cy="325"
+            r="36"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+            stroke-opacity="0.4"
+          />
+          <circle
+            cx="400"
+            cy="325"
+            r="43"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+            stroke-opacity="0.3"
+          />
+          <circle
+            cx="400"
+            cy="325"
+            r="50"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+            stroke-opacity="0.2"
+          />
+        </g>
+
+        <!-- ===================================================================
+           FORMES GÉOMÉTRIQUES EN ARRIÈRE-PLAN
+           Utilisation du clip-path pour limiter l'affichage à un cercle
+      =================================================================== -->
+        <g clip-path="url(#circle-clip)" opacity="0.05">
+          <rect x="0" y="0" width="800" height="800" fill="url(#circles)" />
+          <path d="M0,0 L800,800" stroke="#ffffff" stroke-width="1" />
+          <path d="M800,0 L0,800" stroke="#ffffff" stroke-width="1" />
+          <path
+            d="M400,0 L0,400 L400,800 L800,400 Z"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+          />
+          <path
+            d="M0,0 L800,0 L800,800 L0,800 Z"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+          />
+          <path
+            d="M200,200 L600,200 L600,600 L200,600 Z"
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="1"
+          />
+        </g>
+
+        <!-- ===================================================================
+           TEXTE DU LOGO
+           Ajustez le contenu, les polices, tailles et couleurs via le dégradé défini
+      =================================================================== -->
+        <g
+          transform="translate(400, 520)"
+          class="float"
+          style="animation-duration: 10s"
+        >
+          <text
+            x="0"
+            y="0"
+            font-family="Arial, sans-serif"
+            font-size="40"
+            font-weight="bold"
+            text-anchor="middle"
+            fill="url(#text-gradient)"
+          >
+            NEXUS
+          </text>
+          <text
+            x="0"
+            y="30"
+            font-family="Arial, sans-serif"
+            font-size="18"
+            text-anchor="middle"
+            fill="#a0a0ff"
+            opacity="0.9"
+          >
+            TECHNOLOGIES
+          </text>
+        </g>
+
+        <!-- ===================================================================
+           POINTS BRILLANTS AUX EXTRÉMITÉS
+           Ajustez les positions (cx, cy), le rayon (r) et le filtre pour changer l'effet de brillance
+      =================================================================== -->
+        <g class="sparkle">
+          <circle
+            cx="400"
+            cy="175"
+            r="6"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+          <circle
+            cx="400"
+            cy="475"
+            r="6"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+          <circle
+            cx="537.5"
+            cy="325"
+            r="6"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+          <circle
+            cx="262.5"
+            cy="325"
+            r="6"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+          <!-- Points intermédiaires -->
+          <circle
+            cx="350"
+            cy="225"
+            r="4"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+          <circle
+            cx="450"
+            cy="225"
+            r="4"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+          <circle
+            cx="350"
+            cy="425"
+            r="4"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+          <circle
+            cx="450"
+            cy="425"
+            r="4"
+            fill="url(#blue-gradient)"
+            filter="url(#shine)"
+          />
+        </g>
+
+        <!-- ===================================================================
+           RAYONS LUMINEUX (ajustables via stroke-width et coordonnées)
+      =================================================================== -->
+        <g opacity="0.3" class="sparkle">
+          <path
+            d="M400,325 L470,255 L490,235"
+            stroke="url(#blue-gradient)"
+            stroke-width="2"
+          />
+          <path
+            d="M400,325 L330,255 L310,235"
+            stroke="url(#blue-gradient)"
+            stroke-width="2"
+          />
+          <path
+            d="M400,325 L470,395 L490,415"
+            stroke="url(#blue-gradient)"
+            stroke-width="2"
+          />
+          <path
+            d="M400,325 L330,395 L310,415"
+            stroke="url(#blue-gradient)"
+            stroke-width="2"
+          />
+        </g>
+
+        <!-- ===================================================================
+           PETITS POLYGONES DÉCORATIFS
+           (Les formes et leurs positions peuvent être modifiées pour varier l'effet)
+      =================================================================== -->
+        <g class="spin" style="animation-duration: 30s">
+          <path
+            d="M220,250 L235,265 L220,280 L205,265 Z"
+            fill="url(#purple-gradient)"
+            opacity="0.4"
+          />
+          <path
+            d="M580,250 L595,265 L580,280 L565,265 Z"
+            fill="url(#purple-gradient)"
+            opacity="0.4"
+          />
+          <path
+            d="M220,550 L235,535 L220,520 L205,535 Z"
+            fill="url(#purple-gradient)"
+            opacity="0.4"
+          />
+          <path
+            d="M580,550 L595,535 L580,520 L565,535 Z"
+            fill="url(#purple-gradient)"
+            opacity="0.4"
+          />
+        </g>
+
+        <!-- ===================================================================
+           ARCS LUMINEUX
+           (Modifiez les arcs en ajustant le rayon et l'orientation via la commande "A")
+      =================================================================== -->
+        <g
+          stroke="url(#blue-gradient)"
+          stroke-width="2"
+          fill="none"
+          opacity="0.2"
+          class="sparkle"
+        >
+          <path d="M350,250 A50,50 0 0,1 450,250" />
+          <path d="M350,400 A50,50 0 0,0 450,400" />
+          <path d="M325,350 A50,50 0 0,1 325,300" />
+          <path d="M475,350 A50,50 0 0,0 475,300" />
+        </g>
+
+        <!-- ===================================================================
+           LIGNES DE CONNEXION SUPPLÉMENTAIRES
+           (Ces lignes supplémentaires renforcent la structure. Ajustez les coordonnées pour modifier)
+      =================================================================== -->
+        <g
+          stroke="#00b7ff"
+          stroke-width="0.5"
+          opacity="0.3"
+          class="spin"
+          style="animation-duration: 50s"
+        >
+          <path d="M400,325 L400,175" />
+          <path d="M400,325 L400,475" />
+          <path d="M400,325 L262.5,250" />
+          <path d="M400,325 L262.5,400" />
+          <path d="M400,325 L537.5,250" />
+          <path d="M400,325 L537.5,400" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- ===================================================================
+       SCRIPT JAVASCRIPT POUR LES EFFETS INTERACTIFS
+       (Les paramètres ici affectent la création de particules et l'interaction de la souris)
+  =================================================================== -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // --------------------------------------------------------------------
+        // Fonction pour créer des particules dynamiques dans le SVG
+        // --------------------------------------------------------------------
+        function createParticles() {
+          const svgNS = "http://www.w3.org/2000/svg"; // Namespace pour la création d'éléments SVG
+          const svg = document.querySelector("svg");
+          const particlesGroup = document.createElementNS(svgNS, "g");
+          particlesGroup.setAttribute("class", "dynamic-particles");
+
+          // Création de 50 particules avec des paramètres aléatoires
+          for (let i = 0; i < 50; i++) {
+            const particle = document.createElementNS(svgNS, "circle");
+            // Position aléatoire sur l'axe X (0 à 800, correspondant à la vue du SVG)
+            const x = Math.random() * 800;
+            // Position aléatoire sur l'axe Y
+            const y = Math.random() * 800;
+            // Taille de la particule : ajustez la formule pour modifier la plage (ici entre 0.5 et 2.5)
+            const size = Math.random() * 2 + 0.5;
+            // Opacité aléatoire pour varier la luminosité (entre 0.1 et 0.6)
+            const opacity = Math.random() * 0.5 + 0.1;
+
+            particle.setAttribute("cx", x);
+            particle.setAttribute("cy", y);
+            particle.setAttribute("r", size);
+            particle.setAttribute("fill", "#00b7ff");
+            particle.setAttribute("opacity", opacity);
+            particle.setAttribute("class", "sparkle");
+
+            // Animation de scintillement aléatoire pour chaque particule
+            // La durée d'animation est définie entre 2 et 6 secondes (modifiable)
+            const animDuration = Math.random() * 4 + 2;
+            particle.style.animation = `sparkle ${animDuration}s infinite`;
+
+            particlesGroup.appendChild(particle);
+          }
+          // Ajoute le groupe de particules au SVG
+          svg.appendChild(particlesGroup);
+        }
+
+        // Appel de la fonction pour générer les particules dynamiques
+        createParticles();
+
+        // --------------------------------------------------------------------
+        // Effet interactif : légère rotation 3D du conteneur en fonction de la position de la souris
+        // --------------------------------------------------------------------
+        const logo = document.querySelector(".logo-container");
+        logo.addEventListener("mousemove", function (e) {
+          // Récupération des coordonnées du conteneur
+          const rect = this.getBoundingClientRect();
+          // Calcul de la position de la souris relative au conteneur
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          // Calcul des deltas pour la rotation (diviseur modifiable pour intensifier ou diminuer l'effet)
+          const deltaX = (x - centerX) / 50;
+          const deltaY = (y - centerY) / 50;
+
+          // Application d'une transformation 3D avec perspective
+          this.style.transform = `perspective(1000px) rotateY(${-deltaX}deg) rotateX(${deltaY}deg)`;
+        });
+
+        // Réinitialise la transformation lorsque la souris quitte le conteneur
+        logo.addEventListener("mouseleave", function () {
+          this.style.transform =
+            "perspective(1000px) rotateY(0deg) rotateX(0deg)";
+        });
+      });
+    </script>
+  </body>
+</html>
